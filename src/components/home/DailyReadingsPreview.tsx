@@ -11,9 +11,10 @@ interface Props {
 export default function DailyReadingsPreview({ reading: initialReading }: Props) {
   const [reading, setReading] = useState(initialReading);
   const [loading, setLoading] = useState(!initialReading);
-  const today = new Date().toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const [today, setToday] = useState("");
 
   useEffect(() => {
+    setToday(new Date().toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long", year: "numeric" }));
     if (!initialReading) {
       const fetchData = async () => {
         try {
@@ -75,12 +76,12 @@ export default function DailyReadingsPreview({ reading: initialReading }: Props)
                 >
                   <div className="group">
                     <p className="font-cinzel text-caritas-gold text-[10px] tracking-[0.3em] mb-4 opacity-70">FIRST READING</p>
-                    <p className="font-garamond text-white/90 text-lg leading-relaxed line-clamp-6 italic group-hover:text-white transition-colors">{reading.first_reading}</p>
+                    <div className="font-garamond text-white/90 text-lg leading-relaxed line-clamp-6 italic group-hover:text-white transition-colors prose-invert" dangerouslySetInnerHTML={{ __html: reading.first_reading || "" }} />
                   </div>
                   <div className="h-px bg-gradient-to-r from-transparent via-caritas-gold/20 to-transparent w-full" />
                   <div className="group">
                     <p className="font-cinzel text-caritas-gold text-[10px] tracking-[0.3em] mb-4 opacity-70">HOLY GOSPEL</p>
-                    <p className="font-garamond text-white/90 text-lg leading-relaxed line-clamp-6 italic group-hover:text-white transition-colors">{reading.gospel}</p>
+                    <div className="font-garamond text-white/90 text-lg leading-relaxed line-clamp-6 italic group-hover:text-white transition-colors prose-invert" dangerouslySetInnerHTML={{ __html: reading.gospel || "" }} />
                   </div>
                 </motion.div>
               ) : (
@@ -119,9 +120,7 @@ export default function DailyReadingsPreview({ reading: initialReading }: Props)
                   <div className="absolute inset-0 rounded-full border-4 border-caritas-gold/5 animate-pulse" />
                 </div>
                 <h4 className="font-cinzel text-caritas-dark text-center font-bold text-xl mb-4 tracking-wide underline underline-offset-8 decoration-caritas-gold/30">{reading.saint}</h4>
-                <p className="font-garamond text-gray-600 text-lg leading-relaxed line-clamp-[10] text-center italic px-4">
-                  "{reading.saint_description}"
-                </p>
+                <div className="font-garamond text-gray-600 text-lg leading-relaxed line-clamp-[10] text-center italic px-4" dangerouslySetInnerHTML={{ __html: reading.saint_description || "" }} />
               </motion.div>
             ) : (
               <div className="py-12 text-center">

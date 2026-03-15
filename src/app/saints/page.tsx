@@ -3,13 +3,16 @@ import { useState, useEffect } from "react";
 import { Star, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function SaintsPage() {
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState("");
   const [saint, setSaint] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const today = new Date().toISOString().split("T")[0];
+    if (!date) setDate(today);
+
     setLoading(true);
-    fetch(`/api/saints?date=${date}`)
+    fetch(`/api/saints?date=${date || today}`)
       .then(r => r.json())
       .then(d => { setSaint(d); setLoading(false); })
       .catch(() => setLoading(false));
@@ -89,7 +92,7 @@ export default function SaintsPage() {
               {saint.short_bio && (
                 <div className="bg-white rounded-xl p-8 shadow-sm">
                   <h3 className="font-cinzel text-caritas-dark text-xl font-bold mb-4">In Brief</h3>
-                  <p className="font-garamond text-gray-700 text-lg leading-relaxed">{saint.short_bio}</p>
+                  <div className="font-garamond text-gray-700 text-lg leading-relaxed prose prose-stone" dangerouslySetInnerHTML={{ __html: saint.short_bio }} />
                 </div>
               )}
 
@@ -99,7 +102,7 @@ export default function SaintsPage() {
                   <h3 className="font-cinzel text-caritas-dark text-xl font-bold mb-6 flex items-center gap-2">
                     <Star size={18} className="text-caritas-gold" /> The Life of {saint.name}
                   </h3>
-                  <div className="font-garamond text-gray-700 text-lg leading-relaxed whitespace-pre-line">{saint.story}</div>
+                  <div className="font-garamond text-gray-700 text-lg leading-relaxed prose prose-stone" dangerouslySetInnerHTML={{ __html: saint.story }} />
                 </div>
               )}
 
@@ -107,7 +110,7 @@ export default function SaintsPage() {
               {saint.miracles && (
                 <div className="bg-caritas-cream rounded-xl p-8">
                   <h3 className="font-cinzel text-caritas-dark text-xl font-bold mb-4">Miracles & Intercessions</h3>
-                  <p className="font-garamond text-gray-700 text-lg leading-relaxed">{saint.miracles}</p>
+                  <div className="font-garamond text-gray-700 text-lg leading-relaxed prose prose-stone" dangerouslySetInnerHTML={{ __html: saint.miracles }} />
                 </div>
               )}
 
@@ -115,7 +118,7 @@ export default function SaintsPage() {
               {saint.spiritual_lesson && (
                 <div className="bg-caritas-dark rounded-xl p-8 sacred-bg">
                   <h3 className="font-cinzel text-caritas-gold text-sm tracking-widest mb-4">SPIRITUAL LESSON</h3>
-                  <p className="font-playfair text-white text-xl italic leading-relaxed">{saint.spiritual_lesson}</p>
+                  <div className="font-playfair text-white text-xl italic leading-relaxed prose prose-invert" dangerouslySetInnerHTML={{ __html: saint.spiritual_lesson }} />
                 </div>
               )}
 
@@ -135,7 +138,7 @@ export default function SaintsPage() {
               {saint.prayer && (
                 <div className="border border-caritas-gold/40 rounded-xl p-8 text-center">
                   <p className="font-cinzel text-caritas-gold text-xs tracking-widest mb-4">PRAYER TO {saint.name.toUpperCase()}</p>
-                  <p className="font-playfair text-caritas-dark text-lg italic leading-relaxed">{saint.prayer}</p>
+                  <div className="font-playfair text-caritas-dark text-lg italic leading-relaxed prose prose-stone" dangerouslySetInnerHTML={{ __html: saint.prayer }} />
                   <p className="font-cinzel text-caritas-red text-sm mt-4">Amen.</p>
                 </div>
               )}

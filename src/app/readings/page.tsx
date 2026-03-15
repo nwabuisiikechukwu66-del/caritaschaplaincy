@@ -3,14 +3,17 @@ import { useState, useEffect } from "react";
 import { BookOpen, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 
 export default function ReadingsPage() {
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState("");
   const [readings, setReadings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const today = new Date().toISOString().split("T")[0];
+    if (!date) setDate(today);
+
     setLoading(true);
     setReadings(null);
-    fetch(`/api/readings?date=${date}`)
+    fetch(`/api/readings?date=${date || today}`)
       .then((r) => r.json())
       .then((data) => { setReadings(data); setLoading(false); })
       .catch(() => setLoading(false));
@@ -132,7 +135,7 @@ export default function ReadingsPage() {
                     <p className="font-cinzel text-caritas-red text-xs tracking-widest">FIRST READING</p>
                   </div>
                   <p className="font-cinzel text-caritas-dark font-bold text-base mb-4">{readings.first_reading.reference}</p>
-                  <p className="font-garamond text-gray-700 text-xl leading-relaxed">{readings.first_reading.text}</p>
+                  <p className="font-garamond text-gray-700 text-xl leading-relaxed prose prose-stone" dangerouslySetInnerHTML={{ __html: readings.first_reading.text }} />
                   <p className="font-cinzel text-caritas-gold text-xs tracking-wider mt-4">The word of the Lord. — Thanks be to God.</p>
                 </div>
               )}
@@ -142,7 +145,7 @@ export default function ReadingsPage() {
                 <div className="bg-caritas-cream border border-caritas-gold/20 rounded-2xl p-8">
                   <p className="font-cinzel text-caritas-gold text-xs tracking-widest mb-1">RESPONSORIAL PSALM</p>
                   <p className="font-cinzel text-caritas-dark font-bold mb-4">{readings.responsorial_psalm.reference}</p>
-                  <p className="font-playfair text-gray-700 text-xl leading-relaxed italic">{readings.responsorial_psalm.response}</p>
+                  <div className="font-playfair text-gray-700 text-xl leading-relaxed italic" dangerouslySetInnerHTML={{ __html: readings.responsorial_psalm.response }} />
                 </div>
               )}
 
@@ -154,7 +157,7 @@ export default function ReadingsPage() {
                     <p className="font-cinzel text-caritas-maroon text-xs tracking-widest">SECOND READING</p>
                   </div>
                   <p className="font-cinzel text-caritas-dark font-bold text-base mb-4">{readings.second_reading.reference}</p>
-                  <p className="font-garamond text-gray-700 text-xl leading-relaxed">{readings.second_reading.text}</p>
+                  <p className="font-garamond text-gray-700 text-xl leading-relaxed prose prose-stone" dangerouslySetInnerHTML={{ __html: readings.second_reading.text }} />
                   <p className="font-cinzel text-caritas-gold text-xs tracking-wider mt-4">The word of the Lord. — Thanks be to God.</p>
                 </div>
               )}
@@ -162,7 +165,7 @@ export default function ReadingsPage() {
               {/* Gospel Acclamation */}
               {readings.gospel_acclamation && (
                 <div className="text-center py-3">
-                  <p className="font-cinzel text-caritas-gold text-sm tracking-widest">✦ {readings.gospel_acclamation} ✦</p>
+                  <div className="font-cinzel text-caritas-gold text-sm tracking-widest" dangerouslySetInnerHTML={{ __html: `✦ ${readings.gospel_acclamation} ✦` }} />
                 </div>
               )}
 
@@ -171,7 +174,7 @@ export default function ReadingsPage() {
                 <div className="bg-caritas-dark rounded-2xl p-8 sacred-bg">
                   <p className="font-cinzel text-caritas-gold text-xs tracking-widest mb-1">HOLY GOSPEL</p>
                   <p className="font-cinzel text-white font-bold text-base mb-6">{readings.gospel.reference}</p>
-                  <p className="font-garamond text-white/85 text-xl leading-relaxed">{readings.gospel.text}</p>
+                  <p className="font-garamond text-white/85 text-xl leading-relaxed prose prose-invert" dangerouslySetInnerHTML={{ __html: readings.gospel.text }} />
                   <p className="font-cinzel text-caritas-gold text-xs tracking-wider mt-6">
                     The Gospel of the Lord. — Praise to you, Lord Jesus Christ.
                   </p>

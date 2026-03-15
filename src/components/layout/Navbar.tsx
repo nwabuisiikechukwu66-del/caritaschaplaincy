@@ -42,7 +42,7 @@ export default function Navbar() {
             </div>
             <div>
               <p className="font-cinzel text-white text-sm font-bold leading-tight">CARITAS</p>
-              <p className="font-garamond text-caritas-gold/80 text-xs leading-tight">Catholic Chaplaincy</p>
+              <p className="font-garamond text-caritas-cream text-xs leading-tight">Catholic Chaplaincy</p>
             </div>
           </Link>
 
@@ -77,18 +77,22 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {isOpen && (
-          <div className="lg:hidden bg-caritas-dark/98 border-t border-caritas-gold/20 py-4">
+          <div className="lg:hidden bg-caritas-dark border-t border-caritas-gold/20 py-6 min-h-[400px] shadow-2xl">
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href}
                 onClick={() => setIsOpen(false)}
-                className="block font-garamond text-white/80 hover:text-caritas-gold px-4 py-3 border-b border-white/5 hover:bg-white/5">
+                className="block font-garamond text-white hover:text-caritas-gold px-6 py-4 border-b border-white/5 hover:bg-white/5 text-lg font-medium transition-colors">
                 {link.label}
               </Link>
             ))}
-            <div className="px-4 pt-4 flex gap-3">
+            <div className="px-6 pt-6 pb-10 flex flex-col gap-4">
               <Link href="/donations" onClick={() => setIsOpen(false)}
-                className="font-cinzel text-xs text-caritas-gold border border-caritas-gold/50 px-4 py-2 rounded-sm">
+                className="font-cinzel text-sm text-caritas-gold border border-caritas-gold/50 px-6 py-3 rounded-sm text-center hover:bg-caritas-gold hover:text-caritas-dark transition-all">
                 DONATE
+              </Link>
+              <Link href="/admin" onClick={() => setIsOpen(false)}
+                className="font-cinzel text-[10px] text-white/40 text-center uppercase tracking-widest mt-4">
+                Staff Portal
               </Link>
             </div>
           </div>

@@ -117,7 +117,7 @@ export default function Chatbot() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-cinzel text-white text-sm font-bold leading-tight">Ask a Padre</p>
-              <p className="font-garamond text-caritas-gold/70 text-xs">Caritas Chaplaincy AI Guide</p>
+              <p className="font-garamond text-caritas-cream text-xs">Caritas Chaplaincy AI Guide</p>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse flex-shrink-0" />

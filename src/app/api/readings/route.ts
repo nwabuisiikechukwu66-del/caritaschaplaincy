@@ -38,10 +38,31 @@ async function fetchFromUniversalis(date: string) {
         .replace(/&#8217;/g, "’")
         .replace(/&#8220;/g, "“")
         .replace(/&#8221;/g, "”")
-        .replace(/&#39;/g, "'");
+        .replace(/&#39;/g, "'")
+        .replace(/&#x2014;/g, "—")
+        .replace(/&#x2018;/g, "‘")
+        .replace(/&#x2019;/g, "’")
+        .replace(/&#x201C;/g, "“")
+        .replace(/&#x201D;/g, "”")
+        .replace(/&#x2026;/g, "...");
     };
 
     const formatLiturgicalText = (html: string = "") => {
+      // Preserve structural tags but remove attributes
+      let structural = html
+        .replace(/<(p|br|div)[^>]*>/gi, " <$1> ")
+        .replace(/<\/(p|div)>/gi, " </$1> ");
+
+      // Strip all other HTML tags
+      let clean = structural.replace(/<(?!\/?(p|br|div)\b)[^>]+>/gi, "");
+
+      // Clean up whitespace while preserving structure
+      clean = clean.replace(/[ \t]+/g, " ").trim();
+
+      return decodeHTMLEntities(clean);
+    };
+
+    const stripHTML = (html: string = "") => {
       let clean = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
       return decodeHTMLEntities(clean);
     };
@@ -49,8 +70,8 @@ async function fetchFromUniversalis(date: string) {
     return {
       date,
       source: "universalis",
-      liturgical_day: formatLiturgicalText(data.day || ""),
-      season: data.season || "",
+      liturgical_day: stripHTML(data.day || ""),
+      season: stripHTML(data.season || ""),
       color: data.color || "green",
       first_reading: data.Mass_R1
         ? { reference: data.Mass_R1.source, text: formatLiturgicalText(data.Mass_R1.text) }

@@ -14,7 +14,7 @@ export default function DonateSection() {
   return (
     <section className="py-24 bg-caritas-dark sacred-bg relative overflow-hidden">
       {/* Large cross bg */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-3">
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10">
         <span className="text-caritas-gold/5 font-cinzel" style={{ fontSize: "40rem" }}>✝</span>
       </div>
 

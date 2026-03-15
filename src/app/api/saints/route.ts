@@ -37,15 +37,36 @@ async function fetchSaintFromUniversalis(date: string) {
         .replace(/&#8217;/g, "’")
         .replace(/&#8220;/g, "“")
         .replace(/&#8221;/g, "”")
-        .replace(/&#39;/g, "'");
+        .replace(/&#39;/g, "'")
+        .replace(/&#x2014;/g, "—")
+        .replace(/&#x2018;/g, "‘")
+        .replace(/&#x2019;/g, "’")
+        .replace(/&#x201C;/g, "“")
+        .replace(/&#x201D;/g, "”")
+        .replace(/&#x2026;/g, "...");
     };
 
     const formatLiturgicalText = (s: string = "") => {
+      // Preserve structural tags but remove attributes
+      let structural = s
+        .replace(/<(p|br|div)[^>]*>/gi, " <$1> ")
+        .replace(/<\/(p|div)>/gi, " </$1> ");
+
+      // Strip all other HTML tags
+      let clean = structural.replace(/<(?!\/?(p|br|div)\b)[^>]+>/gi, "");
+
+      // Clean up whitespace while preserving structure
+      clean = clean.replace(/[ \t]+/g, " ").trim();
+
+      return decodeHTMLEntities(clean);
+    };
+
+    const stripHTML = (s: string = "") => {
       let clean = s.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
       return decodeHTMLEntities(clean);
     };
 
-    const dayText = formatLiturgicalText(data.day || "");
+    const dayText = stripHTML(data.day || "");
     // The day field usually contains the saint name/feast e.g. "St Patrick" or "4th Sunday of Lent"
     if (!dayText) return null;
     return {
@@ -53,7 +74,7 @@ async function fetchSaintFromUniversalis(date: string) {
       feast_day: new Date(date).toLocaleDateString("en-US", { month: "long", day: "numeric" }),
       source: "universalis",
       short_bio: data.subtitle ? formatLiturgicalText(data.subtitle) : null,
-      season: data.season,
+      season: stripHTML(data.season || ""),
     };
   } catch {
     return null;
