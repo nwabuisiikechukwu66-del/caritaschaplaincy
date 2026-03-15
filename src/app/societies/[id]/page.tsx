@@ -6,20 +6,33 @@ export default async function SocietyDetailPage({ params }: { params: { id: stri
   let society: any = null;
   let leaders: any[] = [];
 
+  const wikiData = require("@/data/societies-wiki.json");
+  const localSociety = wikiData.find((s: any) => s.id === params.id || s.name.toLowerCase().replace(/\s+/g, '-') === params.id);
+
   try {
-    // Try UUID first
-    let result = await supabase.from("societies").select("*").eq("id", params.id).single();
+    if (localSociety) {
+      society = { ...localSociety };
+      // Still fetch leaders from Supabase
+      const { data: socInDb } = await supabase.from("societies").select("id").eq("name", localSociety.name).single();
+      if (socInDb) {
+        const { data: l } = await supabase.from("society_leaders").select("*").eq("society_id", socInDb.id).eq("is_current", true);
+        leaders = l || [];
+      }
+    } else {
+      // Try UUID first
+      let result = await supabase.from("societies").select("*").eq("id", params.id).single();
 
-    // If not found, try slugified name
-    if (!result.data) {
-      const allSoc = await supabase.from("societies").select("*");
-      result.data = allSoc.data?.find((s: any) => s.id === params.id || s.name.toLowerCase().replace(/\s+/g, '-') === params.id) || null;
-    }
+      // If not found, try slugified name
+      if (!result.data) {
+        const allSoc = await supabase.from("societies").select("*");
+        result.data = allSoc.data?.find((s: any) => s.id === params.id || s.name.toLowerCase().replace(/\s+/g, '-') === params.id) || null;
+      }
 
-    society = result.data;
-    if (society) {
-      const { data: l } = await supabase.from("society_leaders").select("*").eq("society_id", society.id).eq("is_current", true);
-      leaders = l || [];
+      society = result.data;
+      if (society) {
+        const { data: l } = await supabase.from("society_leaders").select("*").eq("society_id", society.id).eq("is_current", true);
+        leaders = l || [];
+      }
     }
   } catch { }
 
@@ -42,19 +55,32 @@ export default async function SocietyDetailPage({ params }: { params: { id: stri
             <ArrowLeft size={14} /> BACK TO ALL SOCIETIES
           </Link>
           <div className="inline-block bg-caritas-gold/20 px-3 py-1 rounded-sm mb-4">
-            <span className="font-cinzel text-caritas-gold text-xs tracking-widest">{society.type === "society" ? "PIOUS SOCIETY" : "ASSOCIATION"}</span>
+            <span className="font-cinzel text-caritas-gold text-xs tracking-widest">{society.type?.toUpperCase()}</span>
           </div>
-          <h1 className="font-cinzel text-white text-4xl md:text-5xl font-bold mb-4">{society.name}</h1>
-          <div className="flex flex-wrap items-center gap-6 mt-6">
-            {society.short_description && (
-              <p className="font-garamond text-white/70 text-xl italic max-w-2xl">{society.short_description}</p>
-            )}
-            {society.patron_saint && (
-              <div className="border-l border-caritas-gold/40 pl-6">
-                <p className="font-cinzel text-caritas-gold text-[10px] tracking-widest uppercase mb-1">Patron Saint</p>
-                <p className="font-cinzel text-white text-sm font-bold tracking-wider">{society.patron_saint}</p>
-              </div>
-            )}
+          <h1 className="font-cinzel text-white text-4xl md:text-5xl font-bold mb-6">{society.name}</h1>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10 border-t border-white/10 pt-10">
+            <div className="md:col-span-2">
+              {society.summary ? (
+                <p className="font-garamond text-white/90 text-xl leading-relaxed italic">{society.summary}</p>
+              ) : society.short_description ? (
+                <p className="font-garamond text-white/70 text-xl italic">{society.short_description}</p>
+              ) : null}
+            </div>
+            <div className="space-y-6">
+              {society.patron_saint && (
+                <div className="border-l border-caritas-gold/40 pl-6">
+                  <p className="font-cinzel text-caritas-gold text-[10px] tracking-widest uppercase mb-1">Patron Saint</p>
+                  <p className="font-cinzel text-white text-sm font-bold tracking-wider">{society.patron_saint}</p>
+                </div>
+              )}
+              {society.meeting_time && (
+                <div className="border-l border-caritas-gold/40 pl-6">
+                  <p className="font-cinzel text-caritas-gold text-[10px] tracking-widest uppercase mb-1">Gathering Time</p>
+                  <p className="font-cinzel text-white text-sm font-bold tracking-wider">{society.meeting_time}</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>

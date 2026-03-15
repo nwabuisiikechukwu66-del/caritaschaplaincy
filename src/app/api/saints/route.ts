@@ -15,15 +15,44 @@ async function fetchSaintFromUniversalis(date: string) {
     const data = JSON.parse(text);
     if (!data) return null;
 
-    const cleanHtml = (s: string = "") => s.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-    const name = data.name || "";
-    // Universalis doesn't give rich saint biographies, just the feast name
-    if (!name) return null;
+    const decodeHTMLEntities = (text: string) => {
+      return text
+        .replace(/&#x2010;/g, "-")
+        .replace(/&#x2011;/g, "-")
+        .replace(/&#2013;/g, "–")
+        .replace(/&#2014;/g, "—")
+        .replace(/&#2018;/g, "‘")
+        .replace(/&#2019;/g, "’")
+        .replace(/&#201C;/g, "“")
+        .replace(/&#201D;/g, "”")
+        .replace(/&#160;/g, " ")
+        .replace(/&nbsp;/g, " ")
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&#8211;/g, "–")
+        .replace(/&#8212;/g, "—")
+        .replace(/&#8216;/g, "‘")
+        .replace(/&#8217;/g, "’")
+        .replace(/&#8220;/g, "“")
+        .replace(/&#8221;/g, "”")
+        .replace(/&#39;/g, "'");
+    };
+
+    const formatLiturgicalText = (s: string = "") => {
+      let clean = s.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+      return decodeHTMLEntities(clean);
+    };
+
+    const dayText = formatLiturgicalText(data.day || "");
+    // The day field usually contains the saint name/feast e.g. "St Patrick" or "4th Sunday of Lent"
+    if (!dayText) return null;
     return {
-      name,
+      name: dayText,
       feast_day: new Date(date).toLocaleDateString("en-US", { month: "long", day: "numeric" }),
       source: "universalis",
-      short_bio: data.subtitle ? cleanHtml(data.subtitle) : null,
+      short_bio: data.subtitle ? formatLiturgicalText(data.subtitle) : null,
       season: data.season,
     };
   } catch {

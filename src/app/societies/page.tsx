@@ -31,8 +31,18 @@ export default async function SocietiesPage() {
     { id: "17", name: "Divine Mercy Society", type: "society", short_description: "Spreading the message of God's infinite mercy through Saint Faustina.", color_code: "#D4AF37" },
   ];
 
-  const displayAssoc = associations.length > 0 ? associations : defaultList.filter(s => s.type === "association");
-  const displayPious = pious.length > 0 ? pious : defaultList.filter(s => s.type === "society");
+  const wikiSoc = require("@/data/societies-wiki.json");
+  const mergedSocieties = wikiSoc.map((w: any) => {
+    const fromDb = societies.find((s: any) => s.name.toLowerCase() === w.name.toLowerCase());
+    return {
+      ...w,
+      id: fromDb?.id || w.id,
+      short_description: w.summary.split('.')[0] + '.'
+    };
+  });
+
+  const displayAssoc = mergedSocieties.filter((s: any) => s.type === "association");
+  const displayPious = mergedSocieties.filter((s: any) => s.type === "society");
 
   const SocietyCard = ({ s }: { s: any }) => (
     <Link href={`/societies/${s.id || s.name?.toLowerCase().replace(/\s+/g, '-')}`}

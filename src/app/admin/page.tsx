@@ -5,15 +5,18 @@ import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 
-type Tab = "mass" | "petitions" | "announcements" | "council" | "settings";
-type CouncilType = "executives" | "sacristans" | "catechists";
+type Tab = "mass" | "petitions" | "announcements" | "personnel" | "societies" | "settings";
+type CouncilType = "executives" | "sacristans" | "catechists" | "authorities" | "societies";
 
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
   const [creds, setCreds] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const [tab, setTab] = useState<Tab>("mass");
-  const [data, setData] = useState<Record<string, any[]>>({ mass: [], petitions: [], announcements: [], executives: [], sacristans: [], catechists: [] });
+  const [data, setData] = useState<Record<string, any[]>>({
+    mass: [], petitions: [], announcements: [],
+    executives: [], sacristans: [], catechists: [], authorities: [], societies: []
+  });
   const [loading, setLoading] = useState(false);
 
   const [councilView, setCouncilView] = useState<CouncilType>("executives");
@@ -37,17 +40,21 @@ export default function AdminPage() {
       ]);
       setData(prev => ({ ...prev, mass, petitions, announcements }));
 
-      // Load council data too
-      const [exRes, sacRes, catRes] = await Promise.all([
+      // Load personnel & societies data
+      const [exRes, sacRes, catRes, authRes, socRes] = await Promise.all([
         fetch("/api/admin/council?type=executives").then(r => r.json()),
         fetch("/api/admin/council?type=sacristans").then(r => r.json()),
         fetch("/api/admin/council?type=catechists").then(r => r.json()),
+        fetch("/api/admin/council?type=authorities").then(r => r.json()),
+        fetch("/api/admin/council?type=societies").then(r => r.json()),
       ]);
       setData(prev => ({
         ...prev,
         executives: Array.isArray(exRes) ? exRes : [],
         sacristans: Array.isArray(sacRes) ? sacRes : [],
-        catechists: Array.isArray(catRes) ? catRes : []
+        catechists: Array.isArray(catRes) ? catRes : [],
+        authorities: Array.isArray(authRes) ? authRes : [],
+        societies: Array.isArray(socRes) ? socRes : []
       }));
 
     } catch (e) {
@@ -104,8 +111,9 @@ export default function AdminPage() {
   const tabs: { id: Tab; label: string; icon: any; count?: number }[] = [
     { id: "mass", label: "Mass Intentions", icon: BookOpen, count: data.mass?.length },
     { id: "petitions", label: "Petitions", icon: Flame, count: data.petitions?.length },
-    { id: "announcements", label: "Announcements", icon: Bell, count: data.announcements?.length },
-    { id: "council", label: "CMS / Officials", icon: Users },
+    { id: "announcements", label: "Bulletins", icon: Bell, count: data.announcements?.length },
+    { id: "personnel", label: "Personnel CMS", icon: Users },
+    { id: "societies", label: "Societies Wiki", icon: Archive },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
@@ -125,14 +133,14 @@ export default function AdminPage() {
             <div>
               <label className="font-cinzel text-xs text-caritas-dark tracking-wider block mb-2 uppercase">Username</label>
               <input value={creds.username} onChange={e => setCreds(c => ({ ...c, username: e.target.value }))}
-                className="w-full border border-gray-200 rounded-sm px-4 py-3 font-garamond focus:outline-none focus:border-caritas-red"
+                className="w-full border border-gray-200 text-caritas-red rounded-sm px-4 py-3 font-garamond focus:outline-none focus:border-caritas-red"
                 placeholder="Admin username" />
             </div>
             <div>
               <label className="font-cinzel text-xs text-caritas-dark tracking-wider block mb-2 uppercase">Password</label>
               <input type="password" value={creds.password} onChange={e => setCreds(c => ({ ...c, password: e.target.value }))}
                 onKeyDown={e => e.key === "Enter" && login()}
-                className="w-full border border-gray-200 rounded-sm px-4 py-3 font-garamond focus:outline-none focus:border-caritas-red"
+                className="w-full border border-gray-200 text-caritas-red rounded-sm px-4 py-3 font-garamond focus:outline-none focus:border-caritas-red"
                 placeholder="Admin password" />
             </div>
             <button onClick={login} className="w-full font-cinzel text-xs text-white bg-caritas-red py-3 rounded-sm hover:bg-caritas-maroon transition-colors tracking-widest uppercase">
@@ -174,7 +182,50 @@ export default function AdminPage() {
         <div className="flex-1 p-10 max-w-6xl">
           {loading && <div className="text-center py-12"><div className="w-10 h-10 rounded-full border-4 border-caritas-red/10 border-t-caritas-red animate-spin mx-auto" /></div>}
 
-          {tab === "council" && (
+          {tab === "societies" && (
+            <div className="space-y-8">
+              <div className="flex items-end justify-between border-b border-caritas-gold/20 pb-6">
+                <div>
+                  <h2 className="font-cinzel text-caritas-dark text-4xl font-bold">Societies Wiki</h2>
+                  <p className="font-garamond text-gray-500 italic text-lg mt-2 font-medium uppercase tracking-wider text-xs">Manage detailed historical and social records</p>
+                </div>
+                <button onClick={() => { setCouncilView("societies"); setEditingItem(null); setShowForm(true); }} className="bg-caritas-dark text-white font-cinzel text-[10px] tracking-widest px-6 py-3 rounded-sm flex items-center gap-2 hover:bg-caritas-red transition-all shadow-lg">
+                  <Plus size={14} /> ADD NEW SOCIETY
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {data.societies?.map((item: any) => (
+                  <div key={item.id} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col group hover:border-caritas-gold/40 transition-all">
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="w-16 h-16 rounded-sm bg-caritas-cream border border-caritas-gold/10 overflow-hidden flex-shrink-0">
+                        {item.image_url ? (
+                          <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-caritas-gold/5 text-caritas-gold text-lg font-cinzel">
+                            {item.name[0]}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-cinzel text-caritas-dark font-bold text-sm leading-tight">{item.name}</h4>
+                        <p className="font-garamond text-caritas-red text-xs italic font-semibold capitalize">{item.type}</p>
+                        <p className="text-[10px] font-garamond text-gray-400 mt-2 line-clamp-2 italic">{item.short_description}</p>
+                      </div>
+                    </div>
+                    <div className="mt-auto pt-4 border-t border-gray-50 flex justify-end gap-2">
+                      <button onClick={() => { setCouncilView("societies"); setEditingItem(item); setShowForm(true); }} className="px-4 h-8 rounded-full border border-gray-100 flex items-center gap-2 text-gray-400 hover:bg-caritas-gold/10 hover:text-caritas-gold transition-all font-cinzel text-[10px] tracking-widest uppercase">
+                        <Edit size={12} /> Edit Wiki
+                      </button>
+                      <button onClick={() => { setCouncilView("societies"); deleteCouncilItem(item.id); }} className="w-8 h-8 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all"><Trash size={14} /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {tab === "personnel" && (
             <div className="space-y-8">
               <div className="flex items-end justify-between border-b border-caritas-gold/20 pb-6">
                 <div>
@@ -187,7 +238,7 @@ export default function AdminPage() {
               </div>
 
               <div className="flex gap-4">
-                {(["executives", "sacristans", "catechists"] as CouncilType[]).map(v => (
+                {(["authorities", "executives", "sacristans", "catechists"] as CouncilType[]).map(v => (
                   <button key={v} onClick={() => setCouncilView(v)}
                     className={`font-cinzel text-[10px] tracking-widest px-6 py-3 rounded-sm transition-all border ${councilView === v ? "bg-white border-caritas-gold text-caritas-dark shadow-sm" : "border-gray-200 text-gray-400 hover:border-caritas-gold/40"}`}>
                     {v.toUpperCase()}
@@ -233,47 +284,103 @@ export default function AdminPage() {
                 className="bg-white w-full max-w-xl p-10 rounded-sm shadow-2xl relative"
               >
                 <button onClick={() => setShowForm(false)} className="absolute top-6 right-6 text-gray-400 hover:text-caritas-dark transition-colors"><X size={20} /></button>
-                <h3 className="font-cinzel text-2xl font-bold mb-2 uppercase tracking-tight">{editingItem ? "Edit" : "New"} {councilView.slice(0, -1)}</h3>
+                <h3 className="font-cinzel text-2xl font-bold mb-2 uppercase tracking-tight">{editingItem ? "Edit" : "New"} {councilView === "societies" ? "Society" : councilView.slice(0, -1)}</h3>
                 <p className="font-garamond text-gray-500 italic mb-8 border-b border-caritas-gold/20 pb-4">Entering sacred details for our church officials.</p>
 
-                <form onSubmit={saveCouncilItem} className="space-y-6">
+                <form onSubmit={saveCouncilItem} className="space-y-6 max-h-[70vh] overflow-y-auto px-1 pr-4">
                   <div>
-                    <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Full Name</label>
-                    <input name="name" defaultValue={editingItem?.name} required className="w-full border-b border-gray-200 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold transition-colors" placeholder="e.g. Frank Kelechi Oge" />
+                    <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Name</label>
+                    <input name="name" defaultValue={editingItem?.name} required className="w-full border-b border-gray-200 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold transition-colors" placeholder={councilView === "societies" ? "Society Name" : "Official Name"} />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">{councilView === "executives" ? "Position" : "Role"}</label>
-                      <input name={councilView === "executives" ? "position" : "role"} defaultValue={editingItem?.position || editingItem?.role} required className="w-full border-b border-gray-200 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold transition-colors" placeholder="e.g. President" />
-                    </div>
-                    {councilView === "executives" && (
-                      <div>
-                        <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Academic Year</label>
-                        <input name="academic_year" defaultValue={editingItem?.academic_year || "2025/2026"} required className="w-full border-b border-gray-200 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold transition-colors" placeholder="2025/2026" />
+                  {councilView === "societies" ? (
+                    <>
+                      <div className="grid grid-cols-2 gap-6">
+                        <div>
+                          <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Type</label>
+                          <select name="type" defaultValue={editingItem?.type || "society"} className="w-full border-b border-gray-200 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold bg-transparent">
+                            <option value="society">Society</option>
+                            <option value="association">Association</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Meeting Time</label>
+                          <input name="meeting_time" defaultValue={editingItem?.meeting_time} className="w-full border-b border-gray-200 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold" placeholder="e.g. Sundays 4pm" />
+                        </div>
                       </div>
-                    )}
-                  </div>
+                      <div className="grid grid-cols-2 gap-6">
+                        <div>
+                          <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Patron Saint</label>
+                          <input name="patron_saint" defaultValue={editingItem?.patron_saint} className="w-full border-b border-gray-200 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold" placeholder="e.g. St. Anthony" />
+                        </div>
+                        <div>
+                          <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Image URL</label>
+                          <input name="image_url" defaultValue={editingItem?.image_url} className="w-full border-b border-gray-200 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold" placeholder="/images/..." />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Short Description</label>
+                        <textarea name="short_description" defaultValue={editingItem?.short_description} className="w-full border border-gray-100 p-4 font-garamond text-lg focus:outline-none focus:border-caritas-gold h-20 rounded-sm" />
+                      </div>
+                      <div>
+                        <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">History (Detailed)</label>
+                        <textarea name="history" defaultValue={editingItem?.history} className="w-full border border-gray-100 p-4 font-garamond text-lg focus:outline-none focus:border-caritas-gold h-32 rounded-sm" />
+                      </div>
+                      <div>
+                        <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">About / Mission</label>
+                        <textarea name="about" defaultValue={editingItem?.about} className="w-full border border-gray-100 p-4 font-garamond text-lg focus:outline-none focus:border-caritas-gold h-32 rounded-sm" />
+                      </div>
+                      <div>
+                        <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Why Join?</label>
+                        <textarea name="why_join" defaultValue={editingItem?.why_join} className="w-full border border-gray-100 p-4 font-garamond text-lg focus:outline-none focus:border-caritas-gold h-32 rounded-sm" />
+                      </div>
+                      <div>
+                        <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Fun Facts</label>
+                        <textarea name="fun_facts" defaultValue={editingItem?.fun_facts} className="w-full border border-gray-100 p-4 font-garamond text-lg focus:outline-none focus:border-caritas-gold h-20 rounded-sm" />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-2 gap-6">
+                        <div>
+                          <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">{councilView === "executives" ? "Position" : "Role"}</label>
+                          <input name={councilView === "executives" ? "position" : "role"} defaultValue={editingItem?.position || editingItem?.role} required className="w-full border-b border-gray-200 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold transition-colors" placeholder="e.g. President" />
+                        </div>
+                        {councilView === "executives" && (
+                          <div>
+                            <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Academic Year</label>
+                            <input name="academic_year" defaultValue={editingItem?.academic_year || "2024/2025"} required className="w-full border-b border-gray-200 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold transition-colors" placeholder="2024/2025" />
+                          </div>
+                        )}
+                      </div>
 
-                  <div>
-                    <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Photo URL (Public Link)</label>
-                    <input name="photo_url" defaultValue={editingItem?.photo_url} className="w-full border-b border-gray-200 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold transition-colors" placeholder="https://..." />
-                  </div>
+                      <div className="grid grid-cols-2 gap-6">
+                        <div>
+                          <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">{councilView === "executives" ? "Photo URL" : "Photo URL"}</label>
+                          <input name={councilView === "executives" ? "photo_url" : "photo_url"} defaultValue={editingItem?.photo_url} className="w-full border-b border-gray-200 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold transition-colors" placeholder="https://..." />
+                        </div>
+                        <div>
+                          <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Phone / Contact</label>
+                          <input name="contact" defaultValue={editingItem?.contact} className="w-full border-b border-gray-200 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold transition-colors" placeholder="+234..." />
+                        </div>
+                      </div>
 
-                  <div>
-                    <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Bio / Short Message</label>
-                    <textarea name="bio" defaultValue={editingItem?.bio} className="w-full border border-gray-100 p-4 font-garamond text-lg focus:outline-none focus:border-caritas-gold transition-colors h-32 rounded-sm" placeholder="A short inspiring message or bio..." />
-                  </div>
+                      <div>
+                        <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Bio / Short Message</label>
+                        <textarea name="bio" defaultValue={editingItem?.bio} className="w-full border border-gray-100 p-4 font-garamond text-lg focus:outline-none focus:border-caritas-gold transition-colors h-32 rounded-sm" placeholder="A short inspiring message or bio..." />
+                      </div>
 
-                  {councilView === "executives" && (
-                    <div className="flex items-center gap-3 py-2">
-                      <input type="checkbox" name="is_current" defaultChecked={editingItem?.is_current ?? true} value="true" className="w-4 h-4 accent-caritas-red" />
-                      <label className="font-garamond text-gray-600 font-medium">Currently in Office</label>
-                    </div>
+                      {councilView === "executives" && (
+                        <div className="flex items-center gap-3 py-2">
+                          <input type="checkbox" name="is_current" defaultChecked={editingItem?.is_current ?? true} value="true" className="w-4 h-4 accent-caritas-red" />
+                          <label className="font-garamond text-gray-600 font-medium">Currently in Office</label>
+                        </div>
+                      )}
+                    </>
                   )}
 
                   <button className="w-full bg-caritas-dark text-white font-cinzel text-xs tracking-[0.3em] py-5 rounded-sm hover:bg-caritas-red transition-all mt-4 uppercase shadow-xl font-bold">
-                    SAVE OFFICIAL TO ARCHIVES
+                    SAVE TO SACRED ARCHIVES
                   </button>
                 </form>
               </motion.div>

@@ -14,31 +14,56 @@ async function fetchFromUniversalis(date: string) {
     // Strip JSONP wrapper
     text = text.replace(/^[^(]*\(/, "").replace(/\)[^)]*$/, "").trim();
     const data = JSON.parse(text);
-    if (!data || !data.Mass) return null;
+    if (!data) return null;
 
-    const mass = data.Mass;
-    const getReading = (type: string) => mass.find((r: any) => r.readingtype === type);
-    const cleanText = (html: string = "") =>
-      html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    const decodeHTMLEntities = (text: string) => {
+      return text
+        .replace(/&#x2010;/g, "-")
+        .replace(/&#x2011;/g, "-")
+        .replace(/&#2013;/g, "–")
+        .replace(/&#2014;/g, "—")
+        .replace(/&#2018;/g, "‘")
+        .replace(/&#2019;/g, "’")
+        .replace(/&#201C;/g, "“")
+        .replace(/&#201D;/g, "”")
+        .replace(/&#160;/g, " ")
+        .replace(/&nbsp;/g, " ")
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&#8211;/g, "–")
+        .replace(/&#8212;/g, "—")
+        .replace(/&#8216;/g, "‘")
+        .replace(/&#8217;/g, "’")
+        .replace(/&#8220;/g, "“")
+        .replace(/&#8221;/g, "”")
+        .replace(/&#39;/g, "'");
+    };
+
+    const formatLiturgicalText = (html: string = "") => {
+      let clean = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+      return decodeHTMLEntities(clean);
+    };
 
     return {
       date,
       source: "universalis",
-      liturgical_day: data.name || "",
+      liturgical_day: formatLiturgicalText(data.day || ""),
       season: data.season || "",
       color: data.color || "green",
-      first_reading: getReading("1")
-        ? { reference: getReading("1").source, text: cleanText(getReading("1").text).slice(0, 700) }
+      first_reading: data.Mass_R1
+        ? { reference: data.Mass_R1.source, text: formatLiturgicalText(data.Mass_R1.text) }
         : null,
-      responsorial_psalm: getReading("ps")
-        ? { reference: getReading("ps").source, response: cleanText(getReading("ps").text).slice(0, 300) }
+      responsorial_psalm: data.Mass_Ps
+        ? { reference: data.Mass_Ps.source, response: formatLiturgicalText(data.Mass_Ps.text) }
         : null,
-      second_reading: getReading("2")
-        ? { reference: getReading("2").source, text: cleanText(getReading("2").text).slice(0, 600) }
+      second_reading: data.Mass_R2
+        ? { reference: data.Mass_R2.source, text: formatLiturgicalText(data.Mass_R2.text) }
         : null,
-      gospel_acclamation: cleanText(getReading("ga")?.text || ""),
-      gospel: getReading("G")
-        ? { reference: getReading("G").source, text: cleanText(getReading("G").text).slice(0, 800) }
+      gospel_acclamation: formatLiturgicalText(data.Mass_GA?.text || ""),
+      gospel: data.Mass_G
+        ? { reference: data.Mass_G.source, text: formatLiturgicalText(data.Mass_G.text) }
         : null,
     };
   } catch (e) {

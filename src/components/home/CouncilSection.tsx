@@ -3,8 +3,8 @@ import Link from "next/link";
 import { Archive } from "lucide-react";
 
 const positions = [
-  "President","Vice President","General Secretary","Assistant Secretary",
-  "Financial Secretary","Treasurer","Provost I","Provost II","PRO"
+  "President", "Vice President", "General Secretary", "Assistant Secretary",
+  "Financial Secretary", "Treasurer", "Provost I", "Provost II", "PRO"
 ];
 const positionIcons: Record<string, string> = {
   "President": "⚜️", "Vice President": "🏛️", "General Secretary": "📜",
@@ -12,7 +12,7 @@ const positionIcons: Record<string, string> = {
   "Provost I": "🔱", "Provost II": "🔱", "PRO": "📢"
 };
 
-interface Executive { id: string; name: string; position: string; photo_url?: string; bio?: string; }
+interface Executive { id: string; name: string; position: string; photo_url?: string; bio?: string; contact?: string; }
 
 export default function CouncilSection({ executives }: { executives: Executive[] }) {
   const getExec = (pos: string) => executives.find(e => e.position === pos);
@@ -32,23 +32,35 @@ export default function CouncilSection({ executives }: { executives: Executive[]
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {positions.map((pos) => {
             const exec = getExec(pos);
             return (
-              <div key={pos} className="holy-card bg-caritas-cream rounded-lg p-6 text-center">
-                <div className="w-20 h-20 rounded-full mx-auto mb-4 bg-gradient-to-br from-caritas-red/20 to-caritas-maroon/30 flex items-center justify-center text-2xl border-2 border-caritas-gold/20 overflow-hidden">
+              <div key={pos} className="holy-card bg-white rounded-sm p-8 text-center shadow-sm border border-caritas-gold/10 group flex flex-col h-full">
+                <div className="w-20 h-20 rounded-full mx-auto mb-6 bg-caritas-cream border-2 border-caritas-gold/20 flex items-center justify-center text-2xl overflow-hidden">
                   {exec?.photo_url ? (
-                    <img src={exec.photo_url} alt={exec.name} className="w-full h-full object-cover" />
+                    <img src={exec.photo_url} alt={exec.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
                   ) : (
-                    <span>{positionIcons[pos] || "✝"}</span>
+                    <span className="opacity-40">{positionIcons[pos] || "✝"}</span>
                   )}
                 </div>
-                <p className="font-cinzel text-caritas-dark text-xs font-bold mb-1 leading-tight">{pos}</p>
+                <h3 className="font-cinzel text-caritas-dark text-[10px] font-bold mb-1 tracking-widest uppercase opacity-60">{pos}</h3>
                 {exec?.name && exec.name !== pos ? (
-                  <p className="font-garamond text-gray-600 text-sm">{exec.name}</p>
+                  <>
+                    <p className="font-cinzel text-caritas-red text-sm font-bold mb-4 leading-tight group-hover:text-caritas-crimson transition-colors">{exec.name}</p>
+                    {exec.bio && (
+                      <p className="font-garamond text-gray-500 text-sm italic leading-relaxed line-clamp-3 mb-4 flex-1">
+                        "{exec.bio}"
+                      </p>
+                    )}
+                    {exec.contact && (
+                      <p className="font-cinzel text-[9px] text-caritas-gold font-bold tracking-widest mt-auto border-t border-caritas-gold/10 pt-4">
+                        {exec.contact}
+                      </p>
+                    )}
+                  </>
                 ) : (
-                  <p className="font-garamond text-gray-400 text-sm italic">Position Open</p>
+                  <p className="font-garamond text-gray-400 text-sm italic mt-2">Position Open</p>
                 )}
               </div>
             );

@@ -2,22 +2,34 @@
 import Link from "next/link";
 import { Archive } from "lucide-react";
 
-interface Official { id: string; name: string; role: string; photo_url?: string; }
+interface Official { id: string; name: string; role: string; photo_url?: string; bio?: string; contact?: string; }
 
 export default function OfficialsSection({
   sacristans, catechists
 }: { sacristans: Official[]; catechists: Official[]; }) {
-  const OfficialCard = ({ name, role, photo_url }: Official) => (
-    <div className="holy-card bg-white rounded-lg p-6 text-center shadow-sm">
-      <div className="w-20 h-20 rounded-full mx-auto mb-4 bg-gradient-to-br from-caritas-red/10 to-caritas-gold/20 border-2 border-caritas-gold/30 flex items-center justify-center overflow-hidden">
+  const OfficialCard = ({ name, role, photo_url, bio, contact }: Official) => (
+    <div className="holy-card bg-white rounded-sm p-8 text-center shadow-sm border border-caritas-gold/10 group flex flex-col h-full">
+      <div className="w-20 h-20 rounded-full mx-auto mb-6 bg-caritas-cream border-2 border-caritas-gold/20 flex items-center justify-center overflow-hidden">
         {photo_url ? (
-          <img src={photo_url} alt={name} className="w-full h-full object-cover" />
+          <img src={photo_url} alt={name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
         ) : (
-          <span className="font-cinzel text-caritas-gold text-2xl">✝</span>
+          <span className="font-cinzel text-caritas-gold text-2xl opacity-40">✝</span>
         )}
       </div>
-      <p className="font-cinzel text-caritas-dark text-sm font-bold mb-1">{name}</p>
-      <p className="font-garamond text-caritas-red text-sm italic">{role}</p>
+      <h3 className="font-cinzel text-caritas-dark text-sm font-bold mb-1 group-hover:text-caritas-red transition-colors">{name}</h3>
+      <p className="font-garamond text-caritas-red text-base italic font-semibold mb-4">{role}</p>
+
+      {bio && (
+        <p className="font-garamond text-gray-500 text-sm italic leading-relaxed line-clamp-3 mb-4 flex-1">
+          "{bio}"
+        </p>
+      )}
+
+      {contact && (
+        <p className="font-cinzel text-[9px] text-caritas-gold font-bold tracking-widest mt-auto border-t border-caritas-gold/10 pt-4">
+          {contact}
+        </p>
+      )}
     </div>
   );
 

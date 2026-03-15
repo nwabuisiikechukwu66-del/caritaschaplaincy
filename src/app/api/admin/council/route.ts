@@ -19,7 +19,8 @@ export async function GET(req: NextRequest) {
     if (!(await validateAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { searchParams } = new URL(req.url);
-    const type = searchParams.get("type"); // executives, sacristans, catechists
+    const type = searchParams.get("type"); // executives, sacristans, catechists, authorities
+    const id = searchParams.get("id");
 
     if (type === "executives") {
         const { data } = await supabase.from("council_executives").select("*").order("academic_year", { ascending: false });
@@ -30,6 +31,12 @@ export async function GET(req: NextRequest) {
     } else if (type === "catechists") {
         const { data } = await supabase.from("catechists").select("*").order("id");
         return NextResponse.json(data);
+    } else if (type === "authorities") {
+        const { data } = await supabase.from("university_authorities").select("*").order("order_rank");
+        return NextResponse.json(data);
+    } else if (type === "societies") {
+        const { data } = await supabase.from("societies").select("*").order("name");
+        return NextResponse.json(data);
     }
 
     return NextResponse.json({ error: "Invalid type" }, { status: 400 });
@@ -39,7 +46,11 @@ export async function POST(req: NextRequest) {
     if (!(await validateAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { type, ...item } = await req.json();
-    const table = type === "executives" ? "council_executives" : type === "sacristans" ? "sacristans" : type === "catechists" ? "catechists" : null;
+    const table = type === "executives" ? "council_executives" :
+        type === "sacristans" ? "sacristans" :
+            type === "catechists" ? "catechists" :
+                type === "authorities" ? "university_authorities" :
+                    type === "societies" ? "societies" : null;
 
     if (!table) return NextResponse.json({ error: "Invalid type" }, { status: 400 });
 
@@ -52,7 +63,11 @@ export async function PATCH(req: NextRequest) {
     if (!(await validateAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { type, id, ...updates } = await req.json();
-    const table = type === "executives" ? "council_executives" : type === "sacristans" ? "sacristans" : type === "catechists" ? "catechists" : null;
+    const table = type === "executives" ? "council_executives" :
+        type === "sacristans" ? "sacristans" :
+            type === "catechists" ? "catechists" :
+                type === "authorities" ? "university_authorities" :
+                    type === "societies" ? "societies" : null;
 
     if (!table) return NextResponse.json({ error: "Invalid type" }, { status: 400 });
 
@@ -67,7 +82,11 @@ export async function DELETE(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const type = searchParams.get("type");
     const id = searchParams.get("id");
-    const table = type === "executives" ? "council_executives" : type === "sacristans" ? "sacristans" : type === "catechists" ? "catechists" : null;
+    const table = type === "executives" ? "council_executives" :
+        type === "sacristans" ? "sacristans" :
+            type === "catechists" ? "catechists" :
+                type === "authorities" ? "university_authorities" :
+                    type === "societies" ? "societies" : null;
 
     if (!table || !id) return NextResponse.json({ error: "Invalid request" }, { status: 400 });
 

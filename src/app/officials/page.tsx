@@ -40,6 +40,7 @@ export default async function OfficialsPage() {
                       <h3 className="font-cinzel text-caritas-dark font-bold">{s.name}</h3>
                       <p className="font-garamond text-caritas-red italic text-sm">{s.role}</p>
                       {s.bio && <p className="font-garamond text-gray-500 text-xs mt-3 border-t border-caritas-gold/10 pt-2 leading-relaxed italic">"{s.bio}"</p>}
+                      {s.contact && <p className="font-cinzel text-[9px] text-caritas-gold tracking-widest mt-2">{s.contact}</p>}
                     </div>
                   </div>
                 ))}
@@ -56,6 +57,8 @@ export default async function OfficialsPage() {
                     <div>
                       <h3 className="font-cinzel text-caritas-dark font-bold">{c.name}</h3>
                       <p className="font-garamond text-caritas-red italic text-sm">{c.role}</p>
+                      {c.bio && <p className="font-garamond text-gray-500 text-xs mt-3 border-t border-caritas-gold/10 pt-2 leading-relaxed italic">"{c.bio}"</p>}
+                      {c.contact && <p className="font-cinzel text-[9px] text-caritas-gold tracking-widest mt-2">{c.contact}</p>}
                     </div>
                   </div>
                 ))}

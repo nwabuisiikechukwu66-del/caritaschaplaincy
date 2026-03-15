@@ -18,18 +18,20 @@ export default function UniversityAuthorities({ authorities }: { authorities: Au
           </p>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {authorities.map((auth) => (
-            <div key={auth.id} className="holy-card bg-caritas-cream rounded-lg p-6 text-center w-48">
-              <div className="w-20 h-20 rounded-full mx-auto mb-4 bg-gradient-to-br from-caritas-red/20 to-caritas-maroon/30 border-2 border-caritas-gold/30 flex items-center justify-center overflow-hidden">
+            <div key={auth.id} className="holy-card bg-white rounded-sm p-8 text-center shadow-sm border border-caritas-gold/10 group">
+              <div className="w-24 h-24 rounded-full mx-auto mb-6 bg-caritas-cream border-2 border-caritas-gold/20 flex items-center justify-center overflow-hidden">
                 {auth.image_url ? (
                   <img src={auth.image_url} alt={auth.name} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="font-cinzel text-caritas-gold text-2xl">✦</span>
+                  <div className="w-full h-full flex items-center justify-center bg-caritas-gold/5">
+                    <span className="font-cinzel text-caritas-gold text-3xl">✝</span>
+                  </div>
                 )}
               </div>
-              <p className="font-cinzel text-caritas-dark text-xs font-bold leading-tight mb-1">{auth.name}</p>
-              <p className="font-garamond text-caritas-red text-xs italic leading-snug">{auth.role}</p>
+              <h3 className="font-cinzel text-caritas-dark text-sm font-bold leading-tight mb-2 tracking-tight group-hover:text-caritas-red transition-colors">{auth.name}</h3>
+              <p className="font-garamond text-caritas-red text-base italic font-semibold">{auth.role}</p>
             </div>
           ))}
         </div>

@@ -47,20 +47,29 @@ async function tryMagisterium(messages: any[]): Promise<string | null> {
   const key = process.env.MAGISTERIUM_API_KEY;
   if (!key) return null;
   try {
-    const res = await fetch("https://api.magisterium.com/v1/chat/completions", {
+    const res = await fetch("https://www.magisterium.com/api/v1/chat/completions", {
       method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      headers: {
+        "Authorization": `Bearer ${key}`,
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
-        model: "magisterium-ai",
+        model: "magisterium-1",
         messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
-        max_tokens: 800,
+        max_tokens: 1000,
       }),
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(15000),
     });
-    if (!res.ok) return null;
+
+    if (!res.ok) {
+      console.error(`Magisterium API error: ${res.status} ${res.statusText}`);
+      return null;
+    }
+
     const data = await res.json();
     return data.choices?.[0]?.message?.content || null;
-  } catch {
+  } catch (e) {
+    console.error("Magisterium fetch failed:", e);
     return null;
   }
 }

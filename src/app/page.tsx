@@ -24,7 +24,21 @@ async function getHomeData() {
     supabase.from("university_authorities").select("*").order("order_rank").then(r => r.data || []),
     supabase.from("societies").select("*").order("name").then(r => r.data || []),
   ]);
-  return { announcements, intentions, petitions, executives, sacristans, catechists, authorities, societies };
+
+  const wikiSoc = require("@/data/societies-wiki.json");
+  const mergedSocieties = societies.map((s: any) => {
+    const wiki = wikiSoc.find((w: any) => w.name.toLowerCase() === s.name.toLowerCase());
+    if (wiki) {
+      return {
+        ...s,
+        short_description: wiki.summary.split('.')[0] + '.', // Use first sentence of summary
+        type: wiki.type
+      };
+    }
+    return s;
+  });
+
+  return { announcements, intentions, petitions, executives, sacristans, catechists, authorities, societies: mergedSocieties };
 }
 
 export default async function Home() {

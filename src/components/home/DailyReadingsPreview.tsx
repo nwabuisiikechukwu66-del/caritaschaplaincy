@@ -75,12 +75,12 @@ export default function DailyReadingsPreview({ reading: initialReading }: Props)
                 >
                   <div className="group">
                     <p className="font-cinzel text-caritas-gold text-[10px] tracking-[0.3em] mb-4 opacity-70">FIRST READING</p>
-                    <p className="font-garamond text-white/90 text-lg leading-relaxed line-clamp-4 italic group-hover:text-white transition-colors">{reading.first_reading}</p>
+                    <p className="font-garamond text-white/90 text-lg leading-relaxed line-clamp-6 italic group-hover:text-white transition-colors">{reading.first_reading}</p>
                   </div>
                   <div className="h-px bg-gradient-to-r from-transparent via-caritas-gold/20 to-transparent w-full" />
                   <div className="group">
                     <p className="font-cinzel text-caritas-gold text-[10px] tracking-[0.3em] mb-4 opacity-70">HOLY GOSPEL</p>
-                    <p className="font-garamond text-white/90 text-lg leading-relaxed line-clamp-4 italic group-hover:text-white transition-colors">{reading.gospel}</p>
+                    <p className="font-garamond text-white/90 text-lg leading-relaxed line-clamp-6 italic group-hover:text-white transition-colors">{reading.gospel}</p>
                   </div>
                 </motion.div>
               ) : (
@@ -114,12 +114,12 @@ export default function DailyReadingsPreview({ reading: initialReading }: Props)
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
-                <div className="w-24 h-24 rounded-full border border-caritas-gold/20 flex items-center justify-center mx-auto mb-10 relative">
-                  <span className="font-cinzel text-caritas-gold text-3xl">✝</span>
+                <div className="w-20 h-20 rounded-full border border-caritas-gold/20 flex items-center justify-center mx-auto mb-8 relative">
+                  <span className="font-cinzel text-caritas-gold text-2xl">✝</span>
                   <div className="absolute inset-0 rounded-full border-4 border-caritas-gold/5 animate-pulse" />
                 </div>
-                <h4 className="font-cinzel text-caritas-dark text-center font-bold text-2xl mb-6 tracking-wide underline underline-offset-8 decoration-caritas-gold/30">{reading.saint}</h4>
-                <p className="font-garamond text-gray-600 text-xl leading-relaxed line-clamp-6 text-center italic px-4">
+                <h4 className="font-cinzel text-caritas-dark text-center font-bold text-xl mb-4 tracking-wide underline underline-offset-8 decoration-caritas-gold/30">{reading.saint}</h4>
+                <p className="font-garamond text-gray-600 text-lg leading-relaxed line-clamp-[10] text-center italic px-4">
                   "{reading.saint_description}"
                 </p>
               </motion.div>
