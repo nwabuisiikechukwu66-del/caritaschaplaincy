@@ -1,0 +1,190 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --red: #8B0000;
+  --crimson: #C8102E;
+  --gold: #D4AF37;
+  --cream: #FAF8F5;
+  --dark: #1A0A0A;
+  --maroon: #600000;
+  --text-light: #FAF8F5;
+  --text-dark: #1A0A0A;
+}
+
+* {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--cream);
+  color: var(--dark);
+  font-family: 'EB Garamond', serif;
+}
+
+.font-cinzel {
+  font-family: 'Cinzel', serif;
+}
+
+.font-playfair {
+  font-family: 'Playfair Display', serif;
+}
+
+.font-garamond {
+  font-family: 'EB Garamond', serif;
+}
+
+/* Matured parchment texture - Dark Version for Hero/Banners */
+.sacred-bg,
+.sacred-bg-dark {
+  background-image:
+    linear-gradient(rgba(10, 5, 5, 0.95), rgba(10, 5, 5, 0.95)),
+    url("https://www.transparenttextures.com/patterns/natural-paper.png");
+  background-attachment: fixed;
+  color: var(--text-light) !important;
+}
+
+/* Matured parchment texture - Light Version for main content */
+.sacred-bg-light {
+  background-image:
+    linear-gradient(rgba(250, 248, 245, 0.9), rgba(250, 248, 245, 0.9)),
+    url("https://www.transparenttextures.com/patterns/natural-paper.png");
+  background-attachment: fixed;
+  color: var(--text-dark);
+}
+
+.red-section {
+  background: radial-gradient(circle at 50% 50%, #600000 0%, #1A0A0A 100%);
+  position: relative;
+  overflow: hidden;
+  color: var(--text-light) !important;
+}
+
+.red-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("https://www.transparenttextures.com/patterns/black-paper.png");
+  opacity: 0.15;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.red-section::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.5) 100%);
+  pointer-events: none;
+}
+
+/* Candle glow effect */
+.candle-glow {
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.2), 0 0 60px rgba(212, 175, 55, 0.1);
+}
+
+/* Card hover - subtle and premium */
+.holy-card {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  background: white;
+}
+
+.holy-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 30px 60px -12px rgba(139, 0, 0, 0.15);
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+/* Scripture quote styling */
+.scripture {
+  border-left: 3px solid var(--gold);
+  font-style: italic;
+  font-family: 'Playfair Display', serif;
+}
+
+/* Ornament */
+.ornament::before,
+.ornament::after {
+  content: '✦';
+  color: var(--gold);
+  margin: 0 1rem;
+  opacity: 0.7;
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+  backdrop-filter: blur(8px);
+  background: rgba(26, 10, 10, 0.85);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--red);
+  border-radius: 3px;
+}
+
+/* Admin dashboard styles */
+.admin-sidebar {
+  background: linear-gradient(180deg, #1A0A0A 0%, #2D1010 100%);
+}
+
+/* Announcement card */
+.announcement-card {
+  background: white;
+  border-radius: 12px;
+  border-left: 4px solid var(--crimson);
+  transition: all 0.3s ease;
+}
+
+.announcement-card:hover {
+  box-shadow: 0 8px 30px rgba(139, 0, 0, 0.1);
+  transform: translateX(4px);
+}
+
+/* Chatbot */
+.chatbot-container {
+  font-family: 'EB Garamond', serif;
+}
+
+@keyframes typing {
+
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+
+  30% {
+    transform: translateY(-6px);
+  }
+}
+
+.typing-dot {
+  animation: typing 1.2s infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
