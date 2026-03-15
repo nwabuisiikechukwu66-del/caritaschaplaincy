@@ -5,8 +5,8 @@ import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 
-type Tab = "mass" | "petitions" | "announcements" | "personnel" | "societies" | "settings";
-type CouncilType = "executives" | "sacristans" | "catechists" | "authorities" | "societies";
+type Tab = "mass" | "petitions" | "announcements" | "personnel" | "societies" | "doctrines" | "settings";
+type CouncilType = "executives" | "sacristans" | "catechists" | "authorities" | "societies" | "doctrines";
 
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
@@ -15,7 +15,8 @@ export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("mass");
   const [data, setData] = useState<Record<string, any[]>>({
     mass: [], petitions: [], announcements: [],
-    executives: [], sacristans: [], catechists: [], authorities: [], societies: []
+    executives: [], sacristans: [], catechists: [], authorities: [], societies: [],
+    doctrines: [], settings: []
   });
   const [loading, setLoading] = useState(false);
 
@@ -41,12 +42,14 @@ export default function AdminPage() {
       setData(prev => ({ ...prev, mass, petitions, announcements }));
 
       // Load personnel & societies data
-      const [exRes, sacRes, catRes, authRes, socRes] = await Promise.all([
+      const [exRes, sacRes, catRes, authRes, socRes, docRes, setRes] = await Promise.all([
         fetch("/api/admin/council?type=executives").then(r => r.json()),
         fetch("/api/admin/council?type=sacristans").then(r => r.json()),
         fetch("/api/admin/council?type=catechists").then(r => r.json()),
         fetch("/api/admin/council?type=authorities").then(r => r.json()),
         fetch("/api/admin/council?type=societies").then(r => r.json()),
+        fetch("/api/admin/council?type=doctrines").then(r => r.json()),
+        fetch("/api/admin/settings").then(r => r.json()),
       ]);
       setData(prev => ({
         ...prev,
@@ -54,7 +57,9 @@ export default function AdminPage() {
         sacristans: Array.isArray(sacRes) ? sacRes : [],
         catechists: Array.isArray(catRes) ? catRes : [],
         authorities: Array.isArray(authRes) ? authRes : [],
-        societies: Array.isArray(socRes) ? socRes : []
+        societies: Array.isArray(socRes) ? socRes : [],
+        doctrines: Array.isArray(docRes) ? docRes : [],
+        settings: Array.isArray(setRes) ? setRes : []
       }));
 
     } catch (e) {
@@ -114,6 +119,7 @@ export default function AdminPage() {
     { id: "announcements", label: "Bulletins", icon: Bell, count: data.announcements?.length },
     { id: "personnel", label: "Personnel CMS", icon: Users },
     { id: "societies", label: "Societies Wiki", icon: Archive },
+    { id: "doctrines", label: "Theology DB", icon: BookOpen },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
@@ -194,34 +200,40 @@ export default function AdminPage() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {data.societies?.map((item: any) => (
-                  <div key={item.id} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col group hover:border-caritas-gold/40 transition-all">
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="w-16 h-16 rounded-sm bg-caritas-cream border border-caritas-gold/10 overflow-hidden flex-shrink-0">
-                        {item.image_url ? (
-                          <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-caritas-gold/5 text-caritas-gold text-lg font-cinzel">
-                            {item.name[0]}
-                          </div>
-                        )}
+              {data.societies?.length === 0 ? (
+                <div className="text-center py-20 bg-white rounded-sm border border-gray-100 shadow-sm">
+                  <p className="font-garamond text-gray-400 italic text-xl">The wiki is blank. No societies recorded.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {data.societies?.map((item: any) => (
+                    <div key={item.id} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col group hover:border-caritas-gold/40 transition-all">
+                      <div className="flex items-start gap-4 mb-4">
+                        <div className="w-16 h-16 rounded-sm bg-caritas-cream border border-caritas-gold/10 overflow-hidden flex-shrink-0">
+                          {item.image_url ? (
+                            <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-caritas-gold/5 text-caritas-gold text-lg font-cinzel">
+                              {item.name[0]}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-cinzel text-caritas-dark font-bold text-sm leading-tight">{item.name}</h4>
+                          <p className="font-garamond text-caritas-red text-xs italic font-semibold capitalize">{item.type}</p>
+                          <p className="text-[10px] font-garamond text-gray-400 mt-2 line-clamp-2 italic">{item.short_description}</p>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <h4 className="font-cinzel text-caritas-dark font-bold text-sm leading-tight">{item.name}</h4>
-                        <p className="font-garamond text-caritas-red text-xs italic font-semibold capitalize">{item.type}</p>
-                        <p className="text-[10px] font-garamond text-gray-400 mt-2 line-clamp-2 italic">{item.short_description}</p>
+                      <div className="mt-auto pt-4 border-t border-gray-50 flex justify-end gap-2">
+                        <button onClick={() => { setCouncilView("societies"); setEditingItem(item); setShowForm(true); }} className="px-4 h-8 rounded-full border border-gray-100 flex items-center gap-2 text-gray-400 hover:bg-caritas-gold/10 hover:text-caritas-gold transition-all font-cinzel text-[10px] tracking-widest uppercase">
+                          <Edit size={12} /> Edit Wiki
+                        </button>
+                        <button onClick={() => { setCouncilView("societies"); deleteCouncilItem(item.id); }} className="w-8 h-8 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all"><Trash size={14} /></button>
                       </div>
                     </div>
-                    <div className="mt-auto pt-4 border-t border-gray-50 flex justify-end gap-2">
-                      <button onClick={() => { setCouncilView("societies"); setEditingItem(item); setShowForm(true); }} className="px-4 h-8 rounded-full border border-gray-100 flex items-center gap-2 text-gray-400 hover:bg-caritas-gold/10 hover:text-caritas-gold transition-all font-cinzel text-[10px] tracking-widest uppercase">
-                        <Edit size={12} /> Edit Wiki
-                      </button>
-                      <button onClick={() => { setCouncilView("societies"); deleteCouncilItem(item.id); }} className="w-8 h-8 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all"><Trash size={14} /></button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -284,13 +296,15 @@ export default function AdminPage() {
                 className="bg-white w-full max-w-xl p-10 rounded-sm shadow-2xl relative"
               >
                 <button onClick={() => setShowForm(false)} className="absolute top-6 right-6 text-gray-400 hover:text-caritas-dark transition-colors"><X size={20} /></button>
-                <h3 className="font-cinzel text-2xl font-bold mb-2 uppercase tracking-tight">{editingItem ? "Edit" : "New"} {councilView === "societies" ? "Society" : councilView.slice(0, -1)}</h3>
-                <p className="font-garamond text-gray-500 italic mb-8 border-b border-caritas-gold/20 pb-4">Entering sacred details for our church officials.</p>
+                <h3 className="font-cinzel text-2xl font-bold mb-2 uppercase tracking-tight">
+                  {editingItem ? "Edit" : "New"} {councilView === "societies" ? "Society" : councilView === "doctrines" ? "Doctrine" : councilView.slice(0, -1)}
+                </h3>
+                <p className="font-garamond text-gray-500 italic mb-8 border-b border-caritas-gold/20 pb-4">Entering sacred details for our {councilView === "doctrines" ? "faith database" : "church officials"}.</p>
 
                 <form onSubmit={saveCouncilItem} className="space-y-6 max-h-[70vh] overflow-y-auto px-1 pr-4">
-                  <div>
+                  <div className={councilView === "doctrines" ? "hidden" : "block"}>
                     <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Name</label>
-                    <input name="name" defaultValue={editingItem?.name} required className="w-full border-b border-gray-200 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold transition-colors" placeholder={councilView === "societies" ? "Society Name" : "Official Name"} />
+                    <input name="name" defaultValue={editingItem?.name} required={councilView !== "doctrines"} className="w-full border-b border-gray-200 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold transition-colors" placeholder={councilView === "societies" ? "Society Name" : "Official Name"} />
                   </div>
 
                   {councilView === "societies" ? (
@@ -337,6 +351,27 @@ export default function AdminPage() {
                       <div>
                         <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Fun Facts</label>
                         <textarea name="fun_facts" defaultValue={editingItem?.fun_facts} className="w-full border border-gray-100 p-4 font-garamond text-lg focus:outline-none focus:border-caritas-gold h-20 rounded-sm" />
+                      </div>
+                    </>
+                  ) : councilView === "doctrines" ? (
+                    <>
+                      <div className="grid grid-cols-2 gap-6">
+                        <div>
+                          <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Category</label>
+                          <input name="category" defaultValue={editingItem?.category} required className="w-full border-b border-gray-200 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold font-medium" placeholder="e.g. Sacraments, History" />
+                        </div>
+                        <div>
+                          <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Source / Reference</label>
+                          <input name="source" defaultValue={editingItem?.source} className="w-full border-b border-gray-100 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold" placeholder="e.g. CCC 1210, Bible" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Question</label>
+                        <input name="question" defaultValue={editingItem?.question} required className="w-full border-b border-gray-200 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold font-medium" placeholder="The theological question..." />
+                      </div>
+                      <div>
+                        <label className="font-cinzel text-[10px] tracking-widest text-caritas-dark block mb-2 uppercase font-bold">Theological Answer</label>
+                        <textarea name="answer" defaultValue={editingItem?.answer} required className="w-full border border-gray-100 p-4 font-garamond text-lg focus:outline-none focus:border-caritas-gold h-48 rounded-sm leading-relaxed" placeholder="Detailed answer based on Church teaching..." />
                       </div>
                     </>
                   ) : (
@@ -423,42 +458,86 @@ export default function AdminPage() {
           {tab === "petitions" && (
             <div className="space-y-10">
               <h2 className="font-cinzel text-caritas-dark text-4xl font-bold border-b border-caritas-gold/20 pb-6 uppercase">Prayer Petitions</h2>
-              <div className="grid grid-cols-1 gap-6">
-                {data.petitions?.map((item: any) => (
-                  <div key={item.id} className="bg-white p-8 rounded-sm shadow-sm border-l-4 border-caritas-gold hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="flex-1">
-                      <p className="font-garamond text-caritas-dark text-xl leading-relaxed italic mb-4">"{item.petition}"</p>
-                      <p className="font-cinzel text-caritas-dark/40 text-[10px] tracking-widest uppercase font-bold">
-                        Submitted by: {item.is_anonymous ? "ANONYMOUS" : item.name.toUpperCase()} · {new Date(item.created_at).toLocaleDateString()}
-                      </p>
+              {data.petitions?.length === 0 ? (
+                <div className="text-center py-20 bg-white rounded-sm border border-gray-100 shadow-sm">
+                  <p className="font-garamond text-gray-400 italic text-xl">The prayer wall is empty. All hearts are at peace.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-6">
+                  {data.petitions?.map((item: any) => (
+                    <div key={item.id} className="bg-white p-8 rounded-sm shadow-sm border-l-4 border-caritas-gold hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-6">
+                      <div className="flex-1">
+                        <p className="font-garamond text-caritas-dark text-xl leading-relaxed italic mb-4">"{item.petition}"</p>
+                        <p className="font-cinzel text-caritas-dark/40 text-[10px] tracking-widest uppercase font-bold">
+                          Submitted by: {item.is_anonymous ? "ANONYMOUS" : item.name.toUpperCase()} · {new Date(item.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="flex gap-4">
+                        <button onClick={() => approve("petitions", item.id)} className="w-12 h-12 rounded-full border border-green-100 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all shadow-sm"><Check size={20} /></button>
+                        <button onClick={() => reject("petitions", item.id)} className="w-12 h-12 rounded-full border border-red-100 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all shadow-sm"><X size={20} /></button>
+                      </div>
                     </div>
-                    <div className="flex gap-4">
-                      <button onClick={() => approve("petitions", item.id)} className="w-12 h-12 rounded-full border border-green-100 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all shadow-sm"><Check size={20} /></button>
-                      <button onClick={() => reject("petitions", item.id)} className="w-12 h-12 rounded-full border border-red-100 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all shadow-sm"><X size={20} /></button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           {tab === "announcements" && (
             <div className="space-y-10">
               <h2 className="font-cinzel text-caritas-dark text-4xl font-bold border-b border-caritas-gold/20 pb-6 uppercase">Bulletins & Notices</h2>
-              <div className="space-y-6">
-                {data.announcements?.map((item: any) => (
-                  <div key={item.id} className="bg-white p-10 rounded-sm shadow-sm border-t-2 border-caritas-red relative group">
-                    <div className="flex items-start justify-between gap-8 mb-6">
-                      <h3 className="font-cinzel text-caritas-dark text-2xl font-bold tracking-tight">{item.title}</h3>
-                      <div className="flex gap-4">
-                        <button onClick={() => approve("announcements", item.id)} className="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all"><Check size={18} /></button>
-                        <button onClick={() => reject("announcements", item.id)} className="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all"><X size={18} /></button>
+              {data.announcements?.length === 0 ? (
+                <div className="text-center py-20 bg-white rounded-sm border border-gray-100 shadow-sm">
+                  <p className="font-garamond text-gray-400 italic text-xl">The bulletins are clear. No pending announcements.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {data.announcements?.map((item: any) => (
+                    <div key={item.id} className="bg-white p-10 rounded-sm shadow-sm border-t-2 border-caritas-red relative group">
+                      <div className="flex items-start justify-between gap-8 mb-6">
+                        <h3 className="font-cinzel text-caritas-dark text-2xl font-bold tracking-tight">{item.title}</h3>
+                        <div className="flex gap-4">
+                          <button onClick={() => approve("announcements", item.id)} className="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all"><Check size={18} /></button>
+                          <button onClick={() => reject("announcements", item.id)} className="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all"><X size={18} /></button>
+                        </div>
+                      </div>
+                      <p className="font-garamond text-gray-600 text-xl leading-relaxed mb-8">{item.content}</p>
+                      <div className="flex items-center gap-3 pt-6 border-t border-gray-50">
+                        <div className="w-8 h-8 rounded-full bg-caritas-dark flex items-center justify-center text-caritas-gold font-cinzel text-xs font-bold">✝</div>
+                        <p className="font-cinzel text-[10px] text-gray-400 tracking-[0.2em] font-bold uppercase">{item.submitted_by || "ADMIN OFFICE"} · {new Date(item.created_at).toLocaleDateString()}</p>
                       </div>
                     </div>
-                    <p className="font-garamond text-gray-600 text-xl leading-relaxed mb-8">{item.content}</p>
-                    <div className="flex items-center gap-3 pt-6 border-t border-gray-50">
-                      <div className="w-8 h-8 rounded-full bg-caritas-dark flex items-center justify-center text-caritas-gold font-cinzel text-xs font-bold">✝</div>
-                      <p className="font-cinzel text-[10px] text-gray-400 tracking-[0.2em] font-bold uppercase">{item.submitted_by || "ADMIN OFFICE"} · {new Date(item.created_at).toLocaleDateString()}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === "doctrines" && (
+            <div className="space-y-8">
+              <div className="flex items-end justify-between border-b border-caritas-gold/20 pb-6">
+                <div>
+                  <h2 className="font-cinzel text-caritas-dark text-4xl font-bold">Theology DB</h2>
+                  <p className="font-garamond text-gray-500 italic text-lg mt-2 font-medium uppercase tracking-wider text-xs">Manage Catholic Doctrines & Faith Q&A</p>
+                </div>
+                <button onClick={() => { setCouncilView("doctrines"); setEditingItem(null); setShowForm(true); }} className="bg-caritas-dark text-white font-cinzel text-[10px] tracking-widest px-6 py-3 rounded-sm flex items-center gap-2 hover:bg-caritas-red transition-all shadow-lg">
+                  <Plus size={14} /> ADD DOCTRINE
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {data.doctrines?.map((item: any) => (
+                  <div key={item.id} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col group hover:border-caritas-gold/40 transition-all">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-cinzel text-[8px] bg-caritas-gold/10 text-caritas-gold px-2 py-0.5 rounded-full uppercase tracking-tighter">{item.category}</span>
+                      </div>
+                      <h4 className="font-cinzel text-caritas-dark font-bold text-xs leading-tight mb-2">{item.question}</h4>
+                      <p className="text-[10px] font-garamond text-gray-600 line-clamp-3 italic leading-relaxed">{item.answer}</p>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-gray-50 flex justify-end gap-2">
+                      <button onClick={() => { setCouncilView("doctrines"); setEditingItem(item); setShowForm(true); }} className="w-8 h-8 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-caritas-gold/10 hover:text-caritas-gold transition-all shadow-sm"><Edit size={12} /></button>
+                      <button onClick={() => { setCouncilView("doctrines"); deleteCouncilItem(item.id); }} className="w-8 h-8 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all shadow-sm"><Trash size={12} /></button>
                     </div>
                   </div>
                 ))}
@@ -469,26 +548,92 @@ export default function AdminPage() {
           {tab === "settings" && (
             <div className="space-y-10">
               <h2 className="font-cinzel text-caritas-dark text-4xl font-bold border-b border-caritas-gold/20 pb-6 uppercase">Sanctuary Controls</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-white p-10 shadow-sm border-l-4 border-caritas-red">
-                  <div className="flex items-center gap-4 mb-6">
-                    <Settings className="text-caritas-gold" strokeWidth={1} />
-                    <h4 className="font-cinzel text-caritas-dark font-bold text-sm tracking-widest uppercase">System Integrity</h4>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                {/* Bank Details Form */}
+                <div className="bg-white p-10 rounded-sm border border-gray-100 shadow-sm space-y-8">
+                  <div className="flex items-center gap-4 mb-2">
+                    <div className="w-12 h-12 rounded-full bg-caritas-gold/5 flex items-center justify-center">
+                      <Settings className="text-caritas-gold" size={24} strokeWidth={1} />
+                    </div>
+                    <div>
+                      <h3 className="font-cinzel text-caritas-dark font-bold text-lg tracking-tight uppercase">Bank Details</h3>
+                      <p className="font-garamond text-gray-400 italic text-xs uppercase tracking-widest">Update donation destinations</p>
+                    </div>
                   </div>
-                  <ul className="space-y-4 font-garamond text-gray-600 italic">
-                    <li>• PWA Manifest: Active</li>
-                    <li>• Service Worker: Operational</li>
-                    <li>• Database: Connected (Supabase)</li>
-                    <li>• Payments: Paystack Integrated</li>
-                  </ul>
+
+                  <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    const form = e.currentTarget;
+                    const value = {
+                      bank_name: (form.elements.namedItem("bank_name") as HTMLInputElement).value,
+                      account_number: (form.elements.namedItem("account_number") as HTMLInputElement).value,
+                      account_name: (form.elements.namedItem("account_name") as HTMLInputElement).value,
+                    };
+                    const res = await fetch("/api/admin/settings", {
+                      method: "PATCH",
+                      body: JSON.stringify({ key: "bank_details", value })
+                    });
+                    if (res.ok) toast.success("Donation details secured.");
+                    else toast.error("Update failed.");
+                  }} className="space-y-6">
+                    <div>
+                      <label className="font-cinzel text-[10px] tracking-[0.2em] text-gray-400 block mb-2 font-bold uppercase">Bank Name</label>
+                      <input name="bank_name" defaultValue={data.settings?.find(s => s.key === "bank_details")?.value?.bank_name} className="w-full border-b border-gray-100 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold transition-all" />
+                    </div>
+                    <div>
+                      <label className="font-cinzel text-[10px] tracking-[0.2em] text-gray-400 block mb-2 font-bold uppercase">Account Number</label>
+                      <input name="account_number" defaultValue={data.settings?.find(s => s.key === "bank_details")?.value?.account_number} className="w-full border-b border-gray-100 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold transition-all" />
+                    </div>
+                    <div>
+                      <label className="font-cinzel text-[10px] tracking-[0.2em] text-gray-400 block mb-2 font-bold uppercase">Account Name</label>
+                      <input name="account_name" defaultValue={data.settings?.find(s => s.key === "bank_details")?.value?.account_name} className="w-full border-b border-gray-100 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold transition-all" />
+                    </div>
+                    <button type="submit" className="w-full bg-caritas-dark text-white font-cinzel text-[10px] tracking-widest py-4 rounded-sm hover:bg-caritas-gold transition-all uppercase font-bold">Update Bank Records</button>
+                  </form>
                 </div>
-                <div className="bg-caritas-dark p-10 shadow-xl sacred-bg text-white">
-                  <h4 className="font-cinzel text-caritas-gold font-bold text-sm tracking-widest uppercase mb-6">Key Infrastructure</h4>
-                  <div className="space-y-4 opacity-70">
-                    <p className="font-cinzel text-[10px] tracking-widest">GEMINI AI: CONNECTED</p>
-                    <p className="font-cinzel text-[10px] tracking-widest">LITURGICAL API: UNIVERSALIS</p>
-                    <p className="font-cinzel text-[10px] tracking-widest">SOCIETIES: 15+ ACTIVE</p>
+
+                {/* Chaplaincy Metadata Form */}
+                <div className="bg-caritas-dark p-10 rounded-sm shadow-xl sacred-bg text-white space-y-8">
+                  <div className="flex items-center gap-4 mb-2">
+                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
+                      <Archive className="text-caritas-gold" size={24} strokeWidth={1} />
+                    </div>
+                    <div>
+                      <h3 className="font-cinzel text-white font-bold text-lg tracking-tight uppercase">Sacred Metadata</h3>
+                      <p className="font-garamond text-caritas-gold/60 italic text-xs uppercase tracking-widest">Global chaplaincy information</p>
+                    </div>
                   </div>
+
+                  <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    const form = e.currentTarget;
+                    const value = {
+                      name: (form.elements.namedItem("name") as HTMLInputElement).value,
+                      chaplain: (form.elements.namedItem("chaplain") as HTMLInputElement).value,
+                      address: (form.elements.namedItem("address") as HTMLInputElement).value,
+                    };
+                    const res = await fetch("/api/admin/settings", {
+                      method: "PATCH",
+                      body: JSON.stringify({ key: "chaplaincy_info", value })
+                    });
+                    if (res.ok) toast.success("Chaplaincy records updated.");
+                    else toast.error("Failed to commit changes.");
+                  }} className="space-y-6">
+                    <div>
+                      <label className="font-cinzel text-[10px] tracking-[0.2em] text-caritas-gold/40 block mb-2 font-bold uppercase">Chaplaincy Name</label>
+                      <input name="name" defaultValue={data.settings?.find(s => s.key === "chaplaincy_info")?.value?.name} className="w-full bg-transparent border-b border-white/10 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold transition-all" />
+                    </div>
+                    <div>
+                      <label className="font-cinzel text-[10px] tracking-[0.2em] text-caritas-gold/40 block mb-2 font-bold uppercase">Current Chaplain</label>
+                      <input name="chaplain" defaultValue={data.settings?.find(s => s.key === "chaplaincy_info")?.value?.chaplain} className="w-full bg-transparent border-b border-white/10 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold transition-all" />
+                    </div>
+                    <div>
+                      <label className="font-cinzel text-[10px] tracking-[0.2em] text-caritas-gold/40 block mb-2 font-bold uppercase">Campus Address</label>
+                      <input name="address" defaultValue={data.settings?.find(s => s.key === "chaplaincy_info")?.value?.address} className="w-full bg-transparent border-b border-white/10 py-3 font-garamond text-lg focus:outline-none focus:border-caritas-gold transition-all" />
+                    </div>
+                    <button type="submit" className="w-full bg-white text-caritas-dark font-cinzel text-[10px] tracking-widest py-4 rounded-sm hover:bg-caritas-gold transition-all uppercase font-bold">Commit Metadata</button>
+                  </form>
                 </div>
               </div>
             </div>

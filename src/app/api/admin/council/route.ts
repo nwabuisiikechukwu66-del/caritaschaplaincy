@@ -5,14 +5,22 @@ import { cookies } from "next/headers";
 async function validateAdmin(): Promise<boolean> {
     const cookieStore = cookies();
     const token = cookieStore.get("admin_token")?.value;
-    if (!token) return false;
-    const { data } = await supabase
+    if (!token) {
+        console.log("[Council API] No admin_token cookie found");
+        return false;
+    }
+    const { data, error } = await supabase
         .from("admin_sessions")
         .select("*")
         .eq("token", token)
         .gt("expires_at", new Date().toISOString())
         .single();
-    return !!data;
+
+    if (error || !data) {
+        console.log("[Council API] Session validation failed for token:", token.slice(0, 8), error?.message);
+        return false;
+    }
+    return true;
 }
 
 export async function GET(req: NextRequest) {
@@ -37,6 +45,9 @@ export async function GET(req: NextRequest) {
     } else if (type === "societies") {
         const { data } = await supabase.from("societies").select("*").order("name");
         return NextResponse.json(data);
+    } else if (type === "doctrines") {
+        const { data } = await supabase.from("doctrines").select("*").order("question");
+        return NextResponse.json(data);
     }
 
     return NextResponse.json({ error: "Invalid type" }, { status: 400 });
@@ -50,7 +61,8 @@ export async function POST(req: NextRequest) {
         type === "sacristans" ? "sacristans" :
             type === "catechists" ? "catechists" :
                 type === "authorities" ? "university_authorities" :
-                    type === "societies" ? "societies" : null;
+                    type === "societies" ? "societies" :
+                        type === "doctrines" ? "doctrines" : null;
 
     if (!table) return NextResponse.json({ error: "Invalid type" }, { status: 400 });
 
@@ -67,7 +79,8 @@ export async function PATCH(req: NextRequest) {
         type === "sacristans" ? "sacristans" :
             type === "catechists" ? "catechists" :
                 type === "authorities" ? "university_authorities" :
-                    type === "societies" ? "societies" : null;
+                    type === "societies" ? "societies" :
+                        type === "doctrines" ? "doctrines" : null;
 
     if (!table) return NextResponse.json({ error: "Invalid type" }, { status: 400 });
 
@@ -86,7 +99,8 @@ export async function DELETE(req: NextRequest) {
         type === "sacristans" ? "sacristans" :
             type === "catechists" ? "catechists" :
                 type === "authorities" ? "university_authorities" :
-                    type === "societies" ? "societies" : null;
+                    type === "societies" ? "societies" :
+                        type === "doctrines" ? "doctrines" : null;
 
     if (!table || !id) return NextResponse.json({ error: "Invalid request" }, { status: 400 });
 
